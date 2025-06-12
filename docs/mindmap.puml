@@ -1,0 +1,16 @@
+@startmindmap
+
+* MSA Dependency
+++ From Monolith to Microserices
++++ Microserices now is the 
++++ a
+++ Design 
++++ Sevices Relationship
+++++ Synchronize method 
+++++ Asynchronize method 
+++++ Service Mesh pattern
+++ Tools 
++++ Monitoring 
++++ Tracing 
+
+@endmindmap
