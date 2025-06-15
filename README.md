@@ -1,4 +1,4 @@
-# Dependency Management on Microservices
+# Designing and Managing Service Dependencies in Microservices
 
 When working on Microservices System, we don't work with only single application, we work with a system that composed of multiple services (application), that each single service will have their own responsibility and have relationship with others that will make the service dependencies.
 If with Object Oriented Programming, we have the strategy of `loose coupling, high cohesion` when designing classes relationship, we have the same with Microservices when designing Services with  consideration of what is the responsibility of the service, how is it constructed and how will the service communicate with others.
@@ -153,3 +153,37 @@ To further decouple producers and consumers, it's beneficial to introduce an **e
 
 This architecture separates event schema (producer-owned) from message schema (consumer-owned), reducing dependencies and enabling each service to evolve independently.
 
+## Service Dependency Management
+
+As microservices systems grow in scale and complexity, managing and understanding the relationships between services becomes increasingly challenging. In particular, for business workflows that span multiple services, **tracing the end-to-end execution path** — especially when failures or latency occur — is critical for operational awareness and debugging.
+
+### Traceability Across Services
+To address this, **traceability** plays a key role. Distributed tracing tools (e.g., OpenTelemetry, Jaeger, Zipkin) allow engineers to follow a business request across multiple services and identify where bottlenecks or failures occur. This level of observability is essential for maintaining service-level objectives (SLOs), debugging production incidents, and understanding how services interact during real-world workflows.
+
+### Service Mesh for Dependency Awareness and Control
+
+A **Service Mesh** architecture enhances dependency management by introducing a dedicated control plane that manages service communication at the network level, outside the application code. This includes:
+
+- **Centralized routing**: Directing traffic to specific service versions, handling request retries, timeouts, and failovers.
+
+- **Rate limiting and circuit breaker patterns**: Protecting services from overload and failure cascades.
+
+- **Versioning and traffic shaping**: Enabling progressive delivery strategies like blue-green deployments or canary releases.
+
+### Visualizing Service Dependencies
+
+Service Meshes (e.g., Istio, Linkerd) often integrate with observability tools to automatically generate **real-time visualizations** of service-to-service dependencies. These dependency graphs are built from communication traces, giving technical teams a clear view of which services interact, how often, and under what conditions. This visibility is essential for architecture reviews, performance optimization, and incident response.
+
+![Just Example](./img/kiali-service-graph.png)
+
+### Integration with Observability Platforms
+
+Modern service meshes support integration with external observability systems such as Prometheus, Grafana, Datadog, or New Relic. This allows the collection and visualization of metrics, logs, and traces — offering a unified view of **system health**, **performance**, and **dependencies**.
+
+## Conclusion
+
+Designing and maintaining a microservices system requires more than just splitting features into smaller services — it demands thoughtful planning around service responsibility, communication, and runtime dependency management. By applying proven design principles such as **Single Responsibility**, **Loose Coupling**, and the **SOLID framework**, teams can build systems that are modular, scalable, and easier to evolve.
+
+We began by exploring how to define high-cohesion services based on domain boundaries and business context. We then examined both **synchronous** and **asynchronous** communication patterns — using REST/gRPC and event-driven architectures respectively — to minimize inter-service dependency while maintaining business agility. Finally, we looked at **Service Mesh** as a powerful architectural layer for controlling, observing, and visualizing service dependencies at runtime.
+
+In practice, these strategies allow microservices to operate independently yet collaboratively, ensuring that the system as a whole remains **resilient**, **observable**, and **extensible** as business needs evolve.
