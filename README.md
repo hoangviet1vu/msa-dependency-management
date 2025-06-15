@@ -35,13 +35,121 @@ In a microservices architecture, how services communicate with each other plays 
 This section explores two main communication approaches and how they support the goal of loose coupling:
 
 - **Synchronous Communication Approaches:**
-This sub-section covers techniques such as RESTful APIs and gRPC, focusing on defining clear and minimal service interfaces using OpenAPI or Protocol Buffers. It also introduces the use of API versioning and the Sidecar pattern to abstract service interactions, enabling better control over routing, rate limiting, and fault tolerance.
+Using RESTful APIs or gRPC with interface contracts (e.g., OpenAPI or Protobuf) to minimize dependencies and support controlled, versioned interactions.tolerance.
 
 - **Asynchronous Communication Approaches:**
-This sub-section highlights the challenges of point-to-point messaging and explains how to reduce inter-service dependencies by adopting event-driven architecture using publish-subscribe patterns. It emphasizes designing topic-based communication channels that follow the Open/Closed Principle and promote scalability through loosely coupled event producers and consumers.
+Applying event-driven architecture to decouple producers and consumers, making it easier to extend the system without impacting existing services.
 
 #### Synchronous Communication Approaches
-T.B.D 
+
+In microservices, synchronous communication is commonly implemented using **RESTful APIs** or **gRPC**, where services interact in a request-response style over the network. To achieve loose coupling, services must define and adhere to clear interface contracts while avoiding direct, hardcoded calls between each other.
+
+To follow the **Dependency Inversion Principle** (SOLID), interface definitions should be decoupled from implementation. This is achieved by using specification tools such as **OpenAPI 3.x** (for REST) or **Protocol Buffers** (for gRPC). These serve as contracts that client services depend on, rather than on internal implementation details.
+
+The **Interface Segregation Principle** is also essential in this context — each service should expose only domain-relevant endpoints and keep its interface concise and focused. For example, an **Order Service** might expose an API like the following:
+
+```yaml
+# OpenAPI 3.0 snippet with versioned base URL
+openapi: 3.0.3
+info:
+  title: Order Service API
+  version: 1.0.0
+servers:
+  - url: /v1
+paths:
+  /orders:
+    get:
+      summary: Get list of orders
+      responses:
+        '200':
+          description: OK
+  /orders/{order-id}:
+    get:
+      summary: Get order by ID
+      parameters:
+        - in: path
+          name: order-id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+```
+Rather than hardcoding service addresses or directly calling other services, communication should go through a **Sidecar proxy**, as implemented in **Service Mesh** frameworks like **Istio**. This allows for advanced features such as:
+- Version-based routing (e.g., `/v1` to `Order Service v1`, `/v2` to `Order Service v2`)
+- Rate limiting
+- Retries and timeouts
+- Circuit breakers
+
+Routing can be configured using an `Istio VirtualService`, where the path prefix (like `/v1`) is matched and routed to the appropriate service version:
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: order-service
+spec:
+  hosts:
+    - order-service
+  http:
+    - match:
+        - uri:
+            prefix: /v1
+      route:
+        - destination:
+            host: order-service
+            subset: v1
+    - match:
+        - uri:
+            prefix: /v2
+      route:
+        - destination:
+            host: order-service
+            subset: v2
+```
+
+With this design, different versions of the same service can be deployed and managed independently. Clients access the appropriate version by specifying the URL prefix (e.g., `/v1/orders`), while backend routing and traffic control are handled by the service mesh, not the services themselves.
+
+This architecture keeps services loosely coupled, easy to evolve, and resilient, even under changes or failures in individual components.
 
 #### Asynchronous Communication Approaches
-T.B.D
+
+Asynchronous communication is a key enabler of loose coupling in microservices architecture. It allows services to communicate without waiting for immediate responses, which improves resilience, scalability, and independence between components.
+
+##### **Point-to-Point Messaging Pattern:**
+A common asynchronous approach is the point-to-point messaging pattern, where Service A sends messages directly to Service B through a dedicated queue. While this approach decouples services at runtime, it introduces tight coupling at the integration level — both services must share an agreed-upon message schema and communication channel. Any schema change in the producer can directly affect the consumer, making the system harder to evolve.
+
+##### **Event-Driven Architecture with Pub/Sub Pattern:**
+To further reduce coupling and increase flexibility, it's preferable to adopt an **event-driven architecture** using the publish-subscribe (pub/sub) pattern. In this model:
+
+- A **producer** emits events to a **topic**.
+- One or more **consumers** independently subscribe to the topic to react to events.
+- The producer is **unaware** of how many consumers exist or what they do — aligning with the **Open/Closed Principle**, as the system can be extended (by adding new consumers) without modifying the producer.
+
+**Example:**<br>
+When an order is placed, the Order Service emits an `ORDER_CREATED` event to the topic `/orders/v1`. At this stage, before the payment is processed, the system needs to:
+- Validate and apply the **promotion code**.
+- Reserve product **stock in inventory**.
+
+To handle these tasks, both the **Promotion Service** and the **Inventory Service** subscribe to the `/orders/v1` topic and consume the event independently to execute their responsibilities.
+
+![Handle Order Events](./img/msa-OrderEvents.drawio.png)
+
+Importantly, the **Order Service is unaware** of which services consume the event — and doesn't need to be. Later, a **Notification Service** might be added to the system to send confirmation messages to end users. It can simply subscribe to the same topic without requiring any change to the Order Service or to the services already consuming it.
+
+This model keeps services **open to extension** and promotes flexibility, scalability, and independence — a cornerstone of resilient microservice design.
+
+Each new event schema should be published to a **dedicated topic** to avoid tight coupling between event versions. This allows consumers to subscribe only to the topics they understand, ensuring compatibility and isolation.
+
+##### **Event Transformation and Consumer-Specific Queues:**
+To further decouple producers and consumers, it's beneficial to introduce an **event transformation layer**:
+
+- Events from a topic are transformed into **consumer-friendly messages**.
+- These transformed messages are pushed into **consumer-specific queues**.
+- Each consumer reads from its own queue, leveraging features such as **retry**, **FIFO ordering**, and **dead-letter queues** as needed.
+
+![Transformation](./img/msa-TransformOrderEvents.drawio.png)
+
+This architecture separates event schema (producer-owned) from message schema (consumer-owned), reducing dependencies and enabling each service to evolve independently.
+
