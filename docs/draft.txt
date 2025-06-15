@@ -1,0 +1,23 @@
+The Introduction will start with share the reason of this article in short, how to construct a Service base on its responsibility and how design the way Service communicate with others to ensure loose coupling, high cohension
+
+In starting point, I think structure of the Article will be
+- Introduction 
+- Design Patterns on Microservices Services
+  + Define a Services
+  ++ base on Domains and   
+  + Services Communication patterns
+  ++ Synchronize with Rest or GRPC with API Versioning
+  ++ Apply Service Mesh Pattern with sidecar
+  +++ Control Plane for centralize routing management, ratelimit...
+  ++ Asynchronize to ensure Open Close Principles with Event Driven Architect
+  +++ Explain about Point to Point Message Queue and its limitation of increase service dependency, hard to extends the system.
+  +++ Applying topics and CDC patterns on Event Driven 
+- Service Dependency Management
+  + Tracibility to obverve Services Communication
+  + Service Mesh to virsualize dependencies 
+  + Dependency management with Service Mesh control plane
+
+
+And this is my Introduction, let's start by improve it
+When working on Microservices System, we don't work with only single application, we work with a system that composed of multiple services (application), that each single service will have their own responsibility and have relationship with others that will make the service dependencies.
+If with Object Oriented Programming, we have the strategy of `loose coupling, high cohesion` when designing classes relationship, we have the same with Microservices when designing Services with  consideration of what is the responsibility of the service, how is it constructed and how will the service communicate with others.

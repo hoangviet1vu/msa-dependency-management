@@ -1,16 +1,15 @@
 @startmindmap
 
 * MSA Dependency
-++ From Monolith to Microserices
-+++ Microserices now is the 
-+++ a
-++ Design 
-+++ Sevices Relationship
-++++ Synchronize method 
-++++ Asynchronize method 
-++++ Service Mesh pattern
-++ Tools 
-+++ Monitoring 
-+++ Tracing 
+++ Service to Service Relationship 
++++ Loose Coupling and High Cohesion
++++ Database per service and consitency, CAP Theorem
++++ Data Storage
++++ Services Communication
+++++ Sync and Async
+++++ Tracing and Monitoring 
+
+
+
 
 @endmindmap
