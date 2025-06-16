@@ -91,22 +91,26 @@ metadata:
   name: order-service
 spec:
   hosts:
-    - order-service
+    - order.example.com
+  gateways:
+    - istio-system/ingress-gateway
   http:
     - match:
         - uri:
             prefix: /v1
+      rewrite:
+        uri: /orders
       route:
         - destination:
-            host: order-service
-            subset: v1
+            host: order-service.default.svc.cluster.local
     - match:
         - uri:
             prefix: /v2
+      rewrite:
+        uri: /orders
       route:
         - destination:
-            host: order-service
-            subset: v2
+            host: order-service-v2.default.svc.cluster.local
 ```
 
 With this design, different versions of the same service can be deployed and managed independently. Clients access the appropriate version by specifying the URL prefix (e.g., `/v1/orders`), while backend routing and traffic control are handled by the service mesh, not the services themselves.
